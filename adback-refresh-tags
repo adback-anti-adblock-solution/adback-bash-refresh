@@ -1,0 +1,48 @@
+#!/bin/bash
+#            _ _                _
+#   __ _  __| | |__   __ _  ___| | __
+#  / _` |/ _` | '_ \ / _` |/ __| |/ /
+# | (_| | (_| | |_) | (_| | (__|   < 
+#  \__,_|\__,_|_.__/ \__,_|\___|_|\_\
+#
+
+
+REFRESH='2bbba6f892f9811423d7f6beb1c3756db5d54699f98cdd2264e38cd36582c3cf'
+
+SLUG='adback'
+
+wget http://stedolan.github.io/jq/download/linux64/jq
+
+chmod +x ./jq
+
+analytics_domain=$(wget -qO- https://adback.co/api/script/$SLUG?access_token=$REFRESH \
+			  | ./jq '.analytics_domain' | sed -e 's/^"//' -e 's/"$//')
+
+analytics_script=$(wget -qO- https://adback.co/api/script/$SLUG?access_token=$REFRESH \
+			  | ./jq '.analytics_script' | sed -e 's/^"//' -e 's/"$//')
+
+message_domain=$(wget -qO- https://adback.co/api/script/$SLUG?access_token=$REFRESH \
+			  | ./jq '.message_domain' | sed -e 's/^"//' -e 's/"$//')
+
+message_script=$(wget -qO- https://adback.co/api/script/$SLUG?access_token=$REFRESH \
+			  | ./jq '.message_script' | sed -e 's/^"//' -e 's/"$//')
+
+#FILES="$@"
+#for f in $FILES
+#do
+#    if .bak backup file exists, read next file
+#    if [ -f ${f}.bak ]
+#    then
+#	echo "Skiping $f file..."
+#	continue  # read next file and skip the cp command
+#    fi
+#    we are here means no backup file exists, just use cp command to copy file
+#    /bin/cp $f $f.bak
+#done
+
+rm ./jq
+
+echo $analytics_domain
+echo $analytics_script
+echo $message_domain
+echo $message_script
