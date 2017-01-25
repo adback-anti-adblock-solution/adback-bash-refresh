@@ -6,43 +6,63 @@
 #  \__,_|\__,_|_.__/ \__,_|\___|_|\_\
 #
 
+if [ -z "$1" ] ; then
+    printf "\nUsage: ${0} [token]\n"
+    printf "Check out adback.co panel to get your token.\n\n"
+    exit 1
+fi
 
-REFRESH='2bbba6f892f9811423d7f6beb1c3756db5d54699f98cdd2264e38cd36582c3cf'
+FILE=$(wget -qO- https://adback.co/api/script/me?access_token=$1\&_format=yml)
 
-SLUG='adback'
+if [ -z "$FILE" ] ; then
+    printf "\nCan't access to  https://adback.co/api/script/me?access_token=${1}&_format=yml\n\n"
+    printf "Please verifying this step:\n"
+    printf "	1) Is your token valid ?                 ->  wget https://adback.co/api/doc?access_token=${1}\n"
+    printf "	2) Are our servers reachable ?           ->  ping adback.co\n"
+    printf "	3) Check out docs for the latest version ->  http://adback-docs.readthedocs.io/en/latest/index.html\n\n"
+    exit 1
+fi
 
-wget http://stedolan.github.io/jq/download/linux64/jq
+analytics_domain=$(echo $FILE | tr " " "\n" | awk '/analytics_domain/{getline; print}')
 
-chmod +x ./jq
+analytics_script_name=$(echo $FILE | tr " " "\n" | awk '/analytics_script/{getline; print}')
 
-analytics_domain=$(wget -qO- https://adback.co/api/script/$SLUG?access_token=$REFRESH \
-			  | ./jq '.analytics_domain' | sed -e 's/^"//' -e 's/"$//')
+message_domain=$(echo $FILE | tr " " "\n" | awk '/message_domain/{getline; print}')
 
-analytics_script=$(wget -qO- https://adback.co/api/script/$SLUG?access_token=$REFRESH \
-			  | ./jq '.analytics_script' | sed -e 's/^"//' -e 's/"$//')
+message_script_name=$(echo $FILE | tr " " "\n" | awk '/message_script/{getline; print}')
 
-message_domain=$(wget -qO- https://adback.co/api/script/$SLUG?access_token=$REFRESH \
-			  | ./jq '.message_domain' | sed -e 's/^"//' -e 's/"$//')
+if [ -z "$analytics_domain" ] || [ -z "$analytics_script_name" ] || [ -z "$message_domain" ] \
+    || [ -z "$message_script_name" ] ; then
+    printf "\nWrong api datas, please try again later.\n\n"
+    printf "Check out docs for the latest version ->  http://adback-docs.readthedocs.io/en/latest/index.html\n\n"
+    exit 1
+fi
 
-message_script=$(wget -qO- https://adback.co/api/script/$SLUG?access_token=$REFRESH \
-			  | ./jq '.message_script' | sed -e 's/^"//' -e 's/"$//')
+#Analytics script
+analytics_script=$(cat <<EOF
+    (function (a,d){var s,t;s=d.createElement('script');
+    s.src=a;s.async=1;
+    t=d.getElementsByTagName('script')[0];
+    t.parentNode.insertBefore(s,t);
+    })("https://${analytics_domain}/${analytics_script_name}.js", document);
+EOF
+)
 
-#FILES="$@"
-#for f in $FILES
-#do
-#    if .bak backup file exists, read next file
-#    if [ -f ${f}.bak ]
-#    then
-#	echo "Skiping $f file..."
-#	continue  # read next file and skip the cp command
-#    fi
-#    we are here means no backup file exists, just use cp command to copy file
-#    /bin/cp $f $f.bak
-#done
+#Analytics script
+message_script=$(cat <<EOF
+    (function (a,d){var s,t,u;s=d.createElement(‘script’);
+    if(d.referrer){u=d.createElement('a');u.href=d.referrer;a=a+u.hostname;}
+    s.src=a;s.async=1;
+    t=d.getElementsByTagName('script')[0];
+    t.parentNode.insertBefore(s,t);
+    })("https://${message_domain}/${message_script_name}.js?ref=", document);
+EOF
+)
 
-rm ./jq
-
-echo $analytics_domain
+printf "\n----- Analytics script -----\n"
 echo $analytics_script
-echo $message_domain
+printf "\n----------------------------\n"
+
+printf "\n----- Analytics script -----\n"
 echo $message_script
+printf "\n----------------------------\n\n"
