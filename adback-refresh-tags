@@ -19,7 +19,7 @@ if [ -z "$FILE" ] ; then
     printf "Please verifying this step:\n"
     printf "	1) Is your token valid ?                 ->  wget https://adback.co/api/doc?access_token=${1}\n"
     printf "	2) Are our servers reachable ?           ->  ping adback.co\n"
-    printf "	3) Check out docs for the latest version ->  http://adback-docs.readthedocs.io/en/latest/index.html\n\n"
+    printf "	3) Check out docs for the latest version ->  http://docs.adback.co/en/latest/\n\n"
     exit 1
 fi
 
@@ -34,7 +34,7 @@ message_script_name=$(echo $FILE | tr " " "\n" | awk '/message_script/{getline; 
 if [ -z "$analytics_domain" ] || [ -z "$analytics_script_name" ] || [ -z "$message_domain" ] \
     || [ -z "$message_script_name" ] ; then
     printf "\nWrong api datas, please try again later.\n\n"
-    printf "Check out docs for the latest version ->  http://adback-docs.readthedocs.io/en/latest/index.html\n\n"
+    printf "Check out docs for the latest version -> http://docs.adback.co/en/latest/\n\n"
     exit 1
 fi
 
