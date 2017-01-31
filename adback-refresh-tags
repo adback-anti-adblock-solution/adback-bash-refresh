@@ -1,8 +1,8 @@
 #!/bin/bash
 
 if [ -z "$1" ] ; then
-    printf "\nUsage: ${0} [token] -c -a -html\n"
     printf "Check out adback.co panel to get your token.\n\n"
+    printf "\nUsage: ${0} [token] -c -a -html\n"
     exit 1
 fi
 
@@ -33,27 +33,36 @@ if [ -z "$analytics_domain" ] || [ -z "$analytics_script_name" ] || [ -z "$messa
 fi
 
 #Analytics script js
-analytics_script=$(cat <<EOF
-    (function (a,d){var s,t;s=d.createElement('script');
-    s.src=a;s.async=1;
-    t=d.getElementsByTagName('script')[0];
-    t.parentNode.insertBefore(s,t);
-    })("https://${analytics_domain}/${analytics_script_name}.js", document);
+A=$(cat <<EOF
+(function (a,d){var s,t;s=d.createElement('script');
+s.src=a;s.async=1;
+t=d.getElementsByTagName('script')[0];
+t.parentNode.insertBefore(s,t);
+})("https://${analytics_domain}/${analytics_script_name}.js", document);
 EOF
 )
 
 # Custom message script js
-message_script=$(cat <<EOF
-    (function (a,d){var s,t,u;s=d.createElement(‘script’);
-    if(d.referrer){u=d.createElement('a');u.href=d.referrer;a=a+u.hostname;}
-    s.src=a;s.async=1;
-    t=d.getElementsByTagName('script')[0];
-    t.parentNode.insertBefore(s,t);
-    })("https://${message_domain}/${message_script_name}.js?ref=", document);
+M=$(cat <<EOF
+(function (a,d){var s,t,u;s=d.createElement(‘script’);
+if(d.referrer){u=d.createElement('a');u.href=d.referrer;a=a+u.hostname;}
+s.src=a;s.async=1;
+t=d.getElementsByTagName('script')[0];
+t.parentNode.insertBefore(s,t);
+})("https://${message_domain}/${message_script_name}.js?ref=", document);
 EOF
 )
 
 
-echo '<script>'$analytics_script'</script>'
+if [[ $2 == "-html" ]] || [[ $3 == "-html" ]] || [[ $4 == "-html" ]]; then
+    A='<script>'$A'</script>'
+    M='<script>'$M'</script>'
+fi
 
-echo '<script>'$message_script'</script>'
+if [[ $2 == "-c" ]] || [[ $3 == "-c" ]] || [[ $4 == "-c" ]]; then
+    echo $M
+fi
+
+if [[ $2 == "-a" ]] || [[ $3 == "-a" ]] || [[ $4 == "-a" ]]; then
+    echo $A
+fi
