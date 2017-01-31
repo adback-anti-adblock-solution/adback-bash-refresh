@@ -2,7 +2,10 @@
 
 if [ -z "$1" ] ; then
     printf "Check out adback.co panel to get your token.\n\n"
-    printf "\nUsage: ${0} [token] -c -a -html\n"
+    printf "Usage: ${0} [token] -c -a -html\n\n"
+    printf "\-c : output custom message script (JS output)\n"
+    printf "\-a : output analytics script (JS output)\n"
+    printf "\-html : change the output method (html output)\n\n"
     exit 1
 fi
 
@@ -32,7 +35,7 @@ if [ -z "$analytics_domain" ] || [ -z "$analytics_script_name" ] || [ -z "$messa
     exit 1
 fi
 
-#Analytics script js
+# Analytics script js
 A=$(cat <<EOF
 (function (a,d){var s,t;s=d.createElement('script');
 s.src=a;s.async=1;
