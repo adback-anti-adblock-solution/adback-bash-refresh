@@ -1,14 +1,11 @@
 #!/bin/bash
-#            _ _                _
-#   __ _  __| | |__   __ _  ___| | __
-#  / _` |/ _` | '_ \ / _` |/ __| |/ /
-# | (_| | (_| | |_) | (_| | (__|   < 
-#  \__,_|\__,_|_.__/ \__,_|\___|_|\_\
-#
 
 if [ -z "$1" ] ; then
-    printf "\nUsage: ${0} [token]\n"
     printf "Check out adback.co panel to get your token.\n\n"
+    printf "Usage: ${0} [token] -c -a -html\n\n"
+    printf "\-c : output custom message script (JS output)\n"
+    printf "\-a : output analytics script (JS output)\n"
+    printf "\-html : change the output method (html output)\n\n"
     exit 1
 fi
 
@@ -19,7 +16,7 @@ if [ -z "$FILE" ] ; then
     printf "Please verifying this step:\n"
     printf "	1) Is your token valid ?                 ->  wget https://adback.co/api/doc?access_token=${1}\n"
     printf "	2) Are our servers reachable ?           ->  ping adback.co\n"
-    printf "	3) Check out docs for the latest version ->  http://adback-docs.readthedocs.io/en/latest/index.html\n\n"
+    printf "	3) Check out docs for the latest version ->  https://docs.adback.co/en/latest/\n\n"
     exit 1
 fi
 
@@ -34,35 +31,41 @@ message_script_name=$(echo $FILE | tr " " "\n" | awk '/message_script/{getline; 
 if [ -z "$analytics_domain" ] || [ -z "$analytics_script_name" ] || [ -z "$message_domain" ] \
     || [ -z "$message_script_name" ] ; then
     printf "\nWrong api datas, please try again later.\n\n"
-    printf "Check out docs for the latest version ->  http://adback-docs.readthedocs.io/en/latest/index.html\n\n"
+    printf "Check out docs for the latest version -> https://docs.adback.co/en/latest/\n\n"
     exit 1
 fi
 
-#Analytics script
-analytics_script=$(cat <<EOF
-    (function (a,d){var s,t;s=d.createElement('script');
-    s.src=a;s.async=1;
-    t=d.getElementsByTagName('script')[0];
-    t.parentNode.insertBefore(s,t);
-    })("https://${analytics_domain}/${analytics_script_name}.js", document);
+# Analytics script js
+A=$(cat <<EOF
+(function (a,d){var s,t;s=d.createElement('script');
+s.src=a;s.async=1;
+t=d.getElementsByTagName('script')[0];
+t.parentNode.insertBefore(s,t);
+})("https://${analytics_domain}/${analytics_script_name}.js", document);
 EOF
 )
 
-#Analytics script
-message_script=$(cat <<EOF
-    (function (a,d){var s,t,u;s=d.createElement(‘script’);
-    if(d.referrer){u=d.createElement('a');u.href=d.referrer;a=a+u.hostname;}
-    s.src=a;s.async=1;
-    t=d.getElementsByTagName('script')[0];
-    t.parentNode.insertBefore(s,t);
-    })("https://${message_domain}/${message_script_name}.js?ref=", document);
+# Custom message script js
+M=$(cat <<EOF
+(function (a,d){var s,t,u;s=d.createElement(‘script’);
+if(d.referrer){u=d.createElement('a');u.href=d.referrer;a=a+u.hostname;}
+s.src=a;s.async=1;
+t=d.getElementsByTagName('script')[0];
+t.parentNode.insertBefore(s,t);
+})("https://${message_domain}/${message_script_name}.js?ref=", document);
 EOF
 )
 
-printf "\n----- Analytics script -----\n"
-echo $analytics_script
-printf "\n----------------------------\n"
 
-printf "\n----- Analytics script -----\n"
-echo $message_script
-printf "\n----------------------------\n\n"
+if [[ $2 == "-html" ]] || [[ $3 == "-html" ]] || [[ $4 == "-html" ]]; then
+    A='<script>'$A'</script>'
+    M='<script>'$M'</script>'
+fi
+
+if [[ $2 == "-c" ]] || [[ $3 == "-c" ]] || [[ $4 == "-c" ]]; then
+    echo $M
+fi
+
+if [[ $2 == "-a" ]] || [[ $3 == "-a" ]] || [[ $4 == "-a" ]]; then
+    echo $A
+fi
