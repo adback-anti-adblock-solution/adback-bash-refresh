@@ -2,10 +2,12 @@
 
 if [ -z "$1" ] ; then
     printf "Check out adback.co panel to get your token.\n\n"
-    printf "Usage: ${0} [token] -c -a -html\n\n"
+    printf "Usage: ${0} [token] -c -a -b -p (-html)\n\n"
     printf "\-c : output custom message script (JS output)\n"
     printf "\-a : output analytics script (JS output)\n"
-    printf "\-html : change the output method (html output)\n\n"
+    printf "\-b : output autopromo banner script (JS output)\n"
+    printf "\-p : output product flow script (JS output)\n"
+    printf "\-html : output all script (html output)\n\n"
     exit 1
 fi
 
@@ -16,7 +18,7 @@ if [ -z "$FILE" ] ; then
     printf "Please verifying this step:\n"
     printf "	1) Is your token valid ?                 ->  wget https://adback.co/api/doc?access_token=${1}\n"
     printf "	2) Are our servers reachable ?           ->  ping adback.co\n"
-    printf "	3) Check out docs for the latest version ->  https://docs.adback.co/en/latest/\n\n"
+    printf "	3) Check out docs for the latest version ->  https://docs.adback.co/\n\n"
     exit 1
 fi
 
@@ -28,10 +30,19 @@ message_domain=$(echo $FILE | tr " " "\n" | awk '/message_domain/{getline; print
 
 message_script_name=$(echo $FILE | tr " " "\n" | awk '/message_script/{getline; print}')
 
+autopromo_domain=$(echo $FILE | tr " " "\n" | awk '/autopromo_banner_domain/{getline; print}')
+
+autopromo_script_name=$(echo $FILE | tr " " "\n" | awk '/autopromo_banner_script/{getline; print}')
+
+product_domain=$(echo $FILE | tr " " "\n" | awk '/product_domain/{getline; print}')
+
+product_script_name=$(echo $FILE | tr " " "\n" | awk '/product_script/{getline; print}')
+
 if [ -z "$analytics_domain" ] || [ -z "$analytics_script_name" ] || [ -z "$message_domain" ] \
-    || [ -z "$message_script_name" ] ; then
+       || [ -z "$message_script_name" ] || [ -z "$autopromo_domain" ] || [ -z "$autopromo_script_name" ] \
+       || [ -z "$product_domain" ] || [ -z "$product_script_name" ]; then
     printf "\nWrong api datas, please try again later.\n\n"
-    printf "Check out docs for the latest version -> https://docs.adback.co/en/latest/\n\n"
+    printf "Check out docs for the latest version -> https://docs.adback.co/\n\n"
     exit 1
 fi
 
@@ -47,12 +58,31 @@ EOF
 
 # Custom message script js
 M=$(cat <<EOF
-(function (a,d){var s,t,u;s=d.createElement(‘script’);
-if(d.referrer){u=d.createElement('a');u.href=d.referrer;a=a+u.hostname;}
+(function (a,d){var s,t;s=d.createElement('script');
 s.src=a;s.async=1;
 t=d.getElementsByTagName('script')[0];
 t.parentNode.insertBefore(s,t);
-})("https://${message_domain}/${message_script_name}.js?ref=", document);
+})("https://${message_domain}/${message_script_name}.js", document);
+EOF
+)
+
+# Autopromo banner script js
+B=$(cat <<EOF
+(function (a,d){var s,t;s=d.createElement('script');
+s.src=a;s.async=1;
+t=d.getElementsByTagName('script')[0];
+t.parentNode.insertBefore(s,t);
+})("https://${autopromo_domain}/${autopromo_script_name}.js", document);
+EOF
+)
+
+# Product flow script js
+P=$(cat <<EOF
+(function (a,d){var s,t;s=d.createElement('script');
+s.src=a;s.async=1;
+t=d.getElementsByTagName('script')[0];
+t.parentNode.insertBefore(s,t);
+})("https://${product_domain}/${product_script_name}.js", document);
 EOF
 )
 
@@ -60,6 +90,8 @@ EOF
 if [[ $2 == "-html" ]] || [[ $3 == "-html" ]] || [[ $4 == "-html" ]]; then
     A='<script>'$A'</script>'
     M='<script>'$M'</script>'
+    B='<script>'$B'</script>'
+    P='<script>'$P'</script>'
 fi
 
 if [[ $2 == "-c" ]] || [[ $3 == "-c" ]] || [[ $4 == "-c" ]]; then
@@ -68,4 +100,12 @@ fi
 
 if [[ $2 == "-a" ]] || [[ $3 == "-a" ]] || [[ $4 == "-a" ]]; then
     echo $A
+fi
+
+if [[ $2 == "-b" ]] || [[ $3 == "-b" ]] || [[ $4 == "-b" ]]; then
+    echo $B
+fi
+
+if [[ $2 == "-p" ]] || [[ $3 == "-p" ]] || [[ $4 == "-p" ]]; then
+    echo $P
 fi
