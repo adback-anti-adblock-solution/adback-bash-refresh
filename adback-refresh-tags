@@ -7,6 +7,7 @@ if [ -z "$1" ] ; then
     printf "\-a : output analytics script (JS output)\n"
     printf "\-b : output autopromo banner script (JS output)\n"
     printf "\-p : output product flow script (JS output)\n"
+    printf "\-i : output iab banner script (JS output)\n"
     printf "\-html : output all script (html output)\n\n"
     exit 1
 fi
@@ -38,9 +39,13 @@ product_domain=$(echo $FILE | tr " " "\n" | awk '/product_domain/{getline; print
 
 product_script_name=$(echo $FILE | tr " " "\n" | awk '/product_script/{getline; print}')
 
+iab_banner_domain=$(echo $FILE | tr " " "\n" | awk '/iab_banner_domain/{getline; print}')
+
+iab_banner_script_name=$(echo $FILE | tr " " "\n" | awk '/iab_banner_script/{getline; print}')
+
 if [ -z "$analytics_domain" ] || [ -z "$analytics_script_name" ] || [ -z "$message_domain" ] \
        || [ -z "$message_script_name" ] || [ -z "$autopromo_domain" ] || [ -z "$autopromo_script_name" ] \
-       || [ -z "$product_domain" ] || [ -z "$product_script_name" ]; then
+       || [ -z "$product_domain" ] || [ -z "$product_script_name" ] || [ -z "$iab_banner_domain" ] || [ -z "$iab_banner_script_name" ]; then
     printf "\nWrong api datas, please try again later.\n\n"
     printf "Check out docs for the latest version -> https://docs.adback.co/\n\n"
     exit 1
@@ -86,6 +91,16 @@ t.parentNode.insertBefore(s,t);
 EOF
 )
 
+# Iab banner script js
+I=$(cat <<EOF
+(function (a,d){var s,t;s=d.createElement('script');
+s.src=a;s.async=1;
+t=d.getElementsByTagName('script')[0];
+t.parentNode.insertBefore(s,t);
+})("https://${iab_banner_domain}/${iab_banner_script_name}.js", document);
+EOF
+)
+
 
 if [[ $2 == "-html" ]] || [[ $3 == "-html" ]] || [[ $4 == "-html" ]]; then
     A='<script>'$A'</script>'
@@ -108,4 +123,8 @@ fi
 
 if [[ $2 == "-p" ]] || [[ $3 == "-p" ]] || [[ $4 == "-p" ]]; then
     echo $P
+fi
+
+if [[ $2 == "-i" ]] || [[ $3 == "-i" ]] || [[ $4 == "-i" ]]; then
+    echo $I
 fi
